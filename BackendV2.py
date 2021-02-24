@@ -6,13 +6,15 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 import numpy as np
 import json
-import UI_FacData
+import UI_FacDataV2
 
-class App(QtWidgets.QFrame, UI_FacData.Ui_Application):
+class App(QtWidgets.QMainWindow, UI_FacDataV2.Ui_MainWindow):
     def __init__(self, parent=None):
-        super(App, self).__init__(parent)
+        super(App, self).__init__(parent=parent)
         self.setupUi(self)
         self.pushButton_Clear.clicked.connect(self.clear)
+        self.actionImport.triggered.connect(self.ImportFileDialog)
+        self.actionExport.triggered.connect(self.ExportFileDialog)
         self.pushButton_Default.clicked.connect(self.default)
         self.pushButton_Refresh.clicked.connect(self.refresh)
         self.refresh_shortcut = QtWidgets.QShortcut(QtGui.QKeySequence('Return'),self)
@@ -151,3 +153,13 @@ class App(QtWidgets.QFrame, UI_FacData.Ui_Application):
         canvas3 = FigureCanvasQTAgg(f3)
         canvas3.setParent(self.GraphFrame3)
         canvas3.show()
+
+    def ExportFileDialog(self):
+        options = QtWidgets.QFileDialog.Options()
+        options |= QtWidgets.QFileDialog.DontUseNativeDialog
+        fileName, _ = QtWidgets.QFileDialog.getSaveFileName(self,"QFileDialog.getSaveFileName()","","All Files (*);;Text Files (*.txt)", options=options)
+
+    def ImportFileDialog(self):
+        options = QtWidgets.QFileDialog.Options()
+        options |= QtWidgets.QFileDialog.DontUseNativeDialog
+        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self,"QFileDialog.getOpenFileName()", "","All Files (*);;Python Files (*.py)", options=options)
