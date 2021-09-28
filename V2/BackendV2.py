@@ -33,6 +33,11 @@ class App(QtWidgets.QMainWindow, UI_FacDataV2.Ui_MainWindow):
         self.lineEdit_8.setText("0")
         self.lineEdit_9.setText("0")
 
+        self.lineEdit_10.setText("0")
+        self.lineEdit_11.setText("0")
+        self.lineEdit_12.setText("0")
+        self.lineEdit_13.setText("1")
+
         self.refresh()
 
     def default(self):
@@ -53,8 +58,24 @@ class App(QtWidgets.QMainWindow, UI_FacDataV2.Ui_MainWindow):
 
         self.refresh()
 
-    def refresh(self):
-        self.get_vals()
+    def refresh(self, data=None):
+        if data:
+            self.r1c1 = float(data["r1c1"])
+            self.r1c2 = float(data["r1c2"])
+            self.r1c3 = float(data["r1c3"])
+            self.r2c1 = float(data["r2c1"])
+            self.r2c2 = float(data["r2c2"])
+            self.r2c3 = float(data["r2c3"])
+            self.r3c1 = float(data["r3c1"])
+            self.r3c2 = float(data["r3c2"])
+            self.r3c3 = float(data["r3c3"])
+            self.init_asst = int(data["Initial Asst"])
+            self.init_assoc = int(data["Initial Assoc"])
+            self.init_full = int(data["Initial Full"])
+            self.years = int(data["Years"])
+        else:
+            self.get_vals()
+        self.update_table()
         self.model()
         self.grapher()
 
@@ -74,6 +95,22 @@ class App(QtWidgets.QMainWindow, UI_FacDataV2.Ui_MainWindow):
         self.init_full = int(self.lineEdit_12.text()) if self.lineEdit_12.text() != '' else 0.0
 
         self.years = int(self.lineEdit_13.text()) if self.lineEdit_13.text() != '' else 0.0
+    
+    def update_table(self):
+        self.lineEdit_1.setText(str(self.r1c1))
+        self.lineEdit_2.setText(str(self.r1c2))
+        self.lineEdit_3.setText(str(self.r1c3))
+        self.lineEdit_4.setText(str(self.r2c1))
+        self.lineEdit_5.setText(str(self.r2c2))
+        self.lineEdit_6.setText(str(self.r2c3))
+        self.lineEdit_7.setText(str(self.r3c1))
+        self.lineEdit_8.setText(str(self.r3c2))
+        self.lineEdit_9.setText(str(self.r3c3))
+
+        self.lineEdit_10.setText(str(self.init_asst))
+        self.lineEdit_11.setText(str(self.init_assoc))
+        self.lineEdit_12.setText(str(self.init_full))
+        self.lineEdit_13.setText(str(self.years))
 
     def model(self):
         self.xvals = list(x for x in range(0, self.years + 1))
@@ -112,6 +149,12 @@ class App(QtWidgets.QMainWindow, UI_FacDataV2.Ui_MainWindow):
                 self.yval3_2.append((100 * (c[1, 0] / self.total[t])))
                 self.yval3_3.append((100 * (c[2, 0] / self.total[t])))
 
+        e = np.linalg.eig(a)
+        print(e)
+        print(e[0])
+        print(np.argmax(e[0],axis=0))
+        ce = e[1][np.argmax(np.absolute(e[0]),axis=0)]
+        print(ce*b)
 
     def grapher(self):
         f1 = Figure(figsize=(7.5,7), dpi=60)
@@ -155,11 +198,29 @@ class App(QtWidgets.QMainWindow, UI_FacDataV2.Ui_MainWindow):
         canvas3.show()
 
     def ExportFileDialog(self):
+        self.refresh()
+
+        facdata = {"r1c1": self.r1c1, "r1c2": self.r1c2, "r1c3": self.r1c3,
+                   "r2c1": self.r2c1, "r2c2": self.r2c2, "r2c3": self.r2c3,
+                   "r3c1": self.r3c1, "r3c2": self.r3c2, "r3c3": self.r3c3,
+                   "Years": self.years, "Initial Asst": self.init_asst, "Initial Assoc": self.init_assoc,
+                   "Initial Full": self.init_full}
+
         options = QtWidgets.QFileDialog.Options()
         options |= QtWidgets.QFileDialog.DontUseNativeDialog
-        fileName, _ = QtWidgets.QFileDialog.getSaveFileName(self,"QFileDialog.getSaveFileName()","","All Files (*);;Text Files (*.txt)", options=options)
+        fileName, _ = QtWidgets.QFileDialog.getSaveFileName(self,"Export Model",".mod","Model Files (*.mod)", options=options)
+        with open(fileName, "w") as outfile:
+            json.dump(facdata,outfile, ensure_ascii=False, indent=4)
+            
+
 
     def ImportFileDialog(self):
         options = QtWidgets.QFileDialog.Options()
         options |= QtWidgets.QFileDialog.DontUseNativeDialog
-        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self,"QFileDialog.getOpenFileName()", "","All Files (*);;Python Files (*.py)", options=options)
+        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self,"QFileDialog.getOpenFileName()", "","Model Files (*.mod)", options=options)
+
+        with open(fileName,"r") as infile:
+            data = json.load(infile)
+        self.refresh(data)
+        
+        
